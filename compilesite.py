@@ -14,7 +14,7 @@ from pybtex.database import parse_file
 from pybtex.database import BibliographyData
 from pybtex import format_from_string
 
-# Print usage. TODO: -e flag to export to <directory>/publichtml, copying the html files and the image folder, so we can easily just grab everything and throw it on our production server
+# Print usage.
 if len(sys.argv) == 1 or '-h' in sys.argv:
     print("Usage: compilesite.py <directory> [options]")
     print()
@@ -23,6 +23,13 @@ if len(sys.argv) == 1 or '-h' in sys.argv:
     print("Options:")
     print("-h: Show this (h)elp menu.")
     print("-e: Put compile files in publichtml directory for easy (e)xporting.")
+    print("-v: Print the (v)ersion number.")
+    exit()
+
+versionnumber = '0.0.1'
+
+if '-v' in sys.argv:
+    print("teXsite compiler, version {}".format(versionnumber))
     exit()
     
 # if here, then we should test that the given argument is a directory.
@@ -54,6 +61,8 @@ usedFnames = [os.path.join(os.getcwd(),rootdir,'index.html'),os.path.join(os.get
 
 titlerules = dict()
 compilerules = dict()
+sitetitle = ''
+siteauthor = ''
 with open(tocFname) as f:
     for line in f:
         # if \include is here, assign \include{key}{valcompilerules}{title}
@@ -62,6 +71,13 @@ with open(tocFname) as f:
             compilerules[line.split('}{')[0].split('{')[1]] = line.split('}{')[1]
             titlerules[line.split('}{')[0].split('{')[1]] = line.split('}{')[1] + ' ' + line.split('}{')[2].split('}')[0]
             usedFnames.append(os.path.join(os.getcwd(), rootdir, line.split('}{')[0].split('{')[1].split('.')[0] + '.html'))
+
+        # find title and author
+        if '\\title' in line:
+            sitetitle = line.split('{')[1].split('}')[0] # \title{...}
+
+        if '\\author' in line:
+            siteauthor = line.split('{')[1].split('}')[0] # \author{...}
             
     
 # first, run through each file and pull all the labels to make the map. Don't want more than one file open at a time. Probably not a big deal, but do it this way anyway
@@ -188,7 +204,7 @@ for fname in tocompileFnames:
             bib_data = parse_file(bibfname) # bib_data.entries holds key:data information
         
     # now that we have the lines, loop through and do our replacements
-    newlines = ['<html><head><link rel="stylesheet" href="style.css"></head><body><div><p><a href=index.html>Table of Contents</a></p>','<h1>' + titlerules[fname] + '</h1>']
+    newlines = ['<html><head><title>' + sitetitle + ': ' + titlerules[fname] + '</title><link rel="stylesheet" href="style.css"></head><body><div><p><a href=index.html>Table of Contents</a></p>','<h1>' + titlerules[fname] + '</h1>']
     kk = 0
     while kk < (len(lines)):
         currentline = lines[kk].split('##')[0] # split off any comments
@@ -529,7 +545,7 @@ with open(os.path.join(os.getcwd(), rootdir,'style.css'), 'w') as file:
     file.write(csstowrite)
 
 # make TOC page with substructure
-tochtml = '<html><head><link rel="stylesheet" href="style.css"></head><body><div><h1>Table of Contents</h1>'
+tochtml = '<html><head><title>' + sitetitle + '</title><link rel="stylesheet" href="style.css"></head><body><div><h1>' + sitetitle + '</h1><p>By: ' + siteauthor + '</p><h2>Table of Contents</h2>'
 with open(tocFname) as f:
     for line in f:
         newline = str(line)
@@ -540,6 +556,10 @@ with open(tocFname) as f:
             # now add substructure
             for substructurestring in substructuremap[currentfname]:
                 newline += substructurestring
+
+        if '\\title' in line or '\\author' in line:
+            # just skip these
+            newline = ''
             
         tochtml += newline
         
@@ -568,9 +588,3 @@ if '-e' in sys.argv:
         
 
 # TODO: could further make a script that converts a latex project into a texsite one. That seems like it would be nice. Just put the labels in the right place, change the figures to the right format, do inline math to $$ not $, change aligns to separate equations, tables as well.
-
-# TODO: should make support for references from .bib file...
-
-# Also should switch toc to index, and include support for \underline, \bold, \link
-
-
