@@ -16,7 +16,14 @@ if len(sys.argv) == 1 or '-h' in sys.argv:
     print("Initializes a new teXsite directory. Options must be after the directory.")
     print()
     print("Options:")
-    print("-h: Show this help menu.")
+    print("-h: Show this (h)elp menu.")
+    print("-v: Print the (v)ersion number.")
+    exit()
+
+versionnumber = '0.0.1'
+
+if '-v' in sys.argv:
+    print("teXsite initialization script, version {}".format(versionnumber))
     exit()
     
 # if here, then we should test that the given argument is not an existing directory.
@@ -39,7 +46,9 @@ shutil.copy('example.png', imagesdir)
 # make index.txt with some boilerplate
 
 tocFname = os.path.join(os.getcwd(), rootdir, 'index.txt')
-toctxt = 'Insert a description of your site here! This is a good place to say what your project is about, since it is the landing page for the whole thing.\n\n'
+toctxt = '\\title{teXsite}\n'
+toctxt += '\\author{Charles D. Kocher}\n\n'
+toctxt += 'Insert a description of your site here! This is a good place to say what your project is about, since it is the landing page for the whole thing.\n\n'
 toctxt += '\\include{firstpage.txt}{1}{Your First Page}\n'
 toctxt += '\\include{secondpage.txt}{2}{Your Second Page}\n'
 with open(tocFname, 'w') as file:
