@@ -20,7 +20,7 @@ if len(sys.argv) == 1 or '-h' in sys.argv:
     print("-v: Print the (v)ersion number.")
     exit()
 
-versionnumber = '0.0.1'
+versionnumber = '0.0.2'
 
 if '-v' in sys.argv:
     print("teXsite initialization script, version {}".format(versionnumber))
@@ -47,7 +47,8 @@ shutil.copy('example.png', imagesdir)
 
 tocFname = os.path.join(os.getcwd(), rootdir, 'index.txt')
 toctxt = '\\title{teXsite}\n'
-toctxt += '\\author{Charles D. Kocher}\n\n'
+toctxt += '\\author{Charles D. Kocher}\n'
+toctxt += '\\backto{Previous Page}{https://github.com/cdkocher/teXsite}\n\n'
 toctxt += 'Insert a description of your site here! This is a good place to say what your project is about, since it is the landing page for the whole thing.\n\n'
 toctxt += '\\include{firstpage.txt}{1}{Your First Page}\n'
 toctxt += '\\include{secondpage.txt}{2}{Your Second Page}\n'
