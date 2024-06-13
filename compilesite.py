@@ -26,7 +26,7 @@ if len(sys.argv) == 1 or '-h' in sys.argv:
     print("-v: Print the (v)ersion number.")
     exit()
 
-versionnumber = '0.0.1'
+versionnumber = '0.0.2'
 
 if '-v' in sys.argv:
     print("teXsite compiler, version {}".format(versionnumber))
@@ -63,6 +63,8 @@ titlerules = dict()
 compilerules = dict()
 sitetitle = ''
 siteauthor = ''
+backtotext = ''
+backtolink = ''
 with open(tocFname) as f:
     for line in f:
         # if \include is here, assign \include{key}{valcompilerules}{title}
@@ -78,6 +80,11 @@ with open(tocFname) as f:
 
         if '\\author' in line:
             siteauthor = line.split('{')[1].split('}')[0] # \author{...}
+
+        # find backto
+        if '\\backto' in line:
+            backtotext = line.split('{')[1].split('}')[0] # \backto{backtotext}{backtolink}
+            backtolink = line.split('}{')[1].split('}')[0]
             
     
 # first, run through each file and pull all the labels to make the map. Don't want more than one file open at a time. Probably not a big deal, but do it this way anyway
@@ -545,7 +552,11 @@ with open(os.path.join(os.getcwd(), rootdir,'style.css'), 'w') as file:
     file.write(csstowrite)
 
 # make TOC page with substructure
-tochtml = '<html><head><title>' + sitetitle + '</title><link rel="stylesheet" href="style.css"></head><body><div><h1>' + sitetitle + '</h1><p>By: ' + siteauthor + '</p><h2>Table of Contents</h2>'
+tochtml = '<html><head><title>' + sitetitle + '</title><link rel="stylesheet" href="style.css"></head><body><div>'
+# if we have a backto command, then we need to put the link at the top
+if backtotext != '' and backtolink != '':
+    tochtml += '<p><a href="' + backtolink + '">Back to ' + backtotext + '</a></p>'
+tochtml += '<h1>' + sitetitle + '</h1><p>By: ' + siteauthor + '</p><h2>Table of Contents</h2>'
 with open(tocFname) as f:
     for line in f:
         newline = str(line)
@@ -557,7 +568,7 @@ with open(tocFname) as f:
             for substructurestring in substructuremap[currentfname]:
                 newline += substructurestring
 
-        if '\\title' in line or '\\author' in line:
+        if '\\title' in line or '\\author' in line or '\\backto' in line:
             # just skip these
             newline = ''
             
@@ -588,3 +599,5 @@ if '-e' in sys.argv:
         
 
 # TODO: could further make a script that converts a latex project into a texsite one. That seems like it would be nice. Just put the labels in the right place, change the figures to the right format, do inline math to $$ not $, change aligns to separate equations, tables as well.
+
+
