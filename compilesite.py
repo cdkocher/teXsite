@@ -26,7 +26,7 @@ if len(sys.argv) == 1 or '-h' in sys.argv:
     print("-v: Print the (v)ersion number.")
     exit()
 
-versionnumber = '0.0.2'
+versionnumber = '0.0.3'
 
 if '-v' in sys.argv:
     print("teXsite compiler, version {}".format(versionnumber))
@@ -69,22 +69,23 @@ with open(tocFname) as f:
     for line in f:
         # if \include is here, assign \include{key}{valcompilerules}{title}
         # title rules maps fname (key) : valcompilerules title
-        if '\\include' in line:
-            compilerules[line.split('}{')[0].split('{')[1]] = line.split('}{')[1]
-            titlerules[line.split('}{')[0].split('{')[1]] = line.split('}{')[1] + ' ' + line.split('}{')[2].split('}')[0]
-            usedFnames.append(os.path.join(os.getcwd(), rootdir, line.split('}{')[0].split('{')[1].split('.')[0] + '.html'))
+        nocommentsline = line.split('##')[0] # have to cut out commented out parts
+        if '\\include' in nocommentsline:
+            compilerules[nocommentsline.split('}{')[0].split('{')[1]] = nocommentsline.split('}{')[1]
+            titlerules[nocommentsline.split('}{')[0].split('{')[1]] = nocommentsline.split('}{')[1] + ' ' + nocommentsline.split('}{')[2].split('}')[0]
+            usedFnames.append(os.path.join(os.getcwd(), rootdir, nocommentsline.split('}{')[0].split('{')[1].split('.')[0] + '.html'))
 
         # find title and author
-        if '\\title' in line:
-            sitetitle = line.split('{')[1].split('}')[0] # \title{...}
+        if '\\title' in nocommentsline:
+            sitetitle = nocommentsline.split('{')[1].split('}')[0] # \title{...}
 
-        if '\\author' in line:
-            siteauthor = line.split('{')[1].split('}')[0] # \author{...}
+        if '\\author' in nocommentsline:
+            siteauthor = nocommentsline.split('{')[1].split('}')[0] # \author{...}
 
         # find backto
-        if '\\backto' in line:
-            backtotext = line.split('{')[1].split('}')[0] # \backto{backtotext}{backtolink}
-            backtolink = line.split('}{')[1].split('}')[0]
+        if '\\backto' in nocommentsline:
+            backtotext = nocommentsline.split('{')[1].split('}')[0] # \backto{backtotext}{backtolink}
+            backtolink = nocommentsline.split('}{')[1].split('}')[0]
             
     
 # first, run through each file and pull all the labels to make the map. Don't want more than one file open at a time. Probably not a big deal, but do it this way anyway
@@ -106,7 +107,8 @@ for fname in tocompileFnames:
     with open(os.path.join(os.getcwd(), rootdir, fname)) as file:
         for line in file:
             # check for each thing. then pull label, determine number, add to mapping
-            if '\\bibliography' in line:
+            nocommentsline = line.split('##')[0]
+            if '\\bibliography' in nocommentsline:
                 # treat it as a section
                 sectionname = 'References'
                 label = fname + '-references'
@@ -120,10 +122,10 @@ for fname in tocompileFnames:
                 # add substructure line for printing on TOC
                 substructuremap[fname].append('<h3><pre>   <a href="' + linkmapping[label] + '">' + mapping[label] + ' ' + sectionname + '</a></pre></h3>')
                 
-            if '\\section' in line:
+            if '\\section' in nocommentsline:
                 # add a section
-                sectionname = line.split('}{')[0].split('{')[1]
-                label = line.split('}{')[1].split('}')[0] # cut out that last }
+                sectionname = nocommentsline.split('}{')[0].split('{')[1]
+                label = nocommentsline.split('}{')[1].split('}')[0] # cut out that last }
                 # increment sections
                 sections += 1
                 mapping[label] = compilerules[fname] + '.' + str(sections)
@@ -135,10 +137,10 @@ for fname in tocompileFnames:
                 # add substructure line for printing on TOC
                 substructuremap[fname].append('<h3><pre>   <a href="' + linkmapping[label] + '">' + mapping[label] + ' ' + sectionname + '</a></pre></h3>')
                 
-            if '\\subsection' in line:
+            if '\\subsection' in nocommentsline:
                 # add a subsection
-                sectionname = line.split('}{')[0].split('{')[1]
-                label = line.split('}{')[1].split('}')[0] # cut out that last }
+                sectionname = nocommentsline.split('}{')[0].split('{')[1]
+                label = nocommentsline.split('}{')[1].split('}')[0] # cut out that last }
                 # increment subsections
                 subsections += 1
                 mapping[label] = compilerules[fname] + '.' + str(sections) + '.' + str(subsections)
@@ -147,27 +149,27 @@ for fname in tocompileFnames:
                 # add substructure line for printing on TOC
                 substructuremap[fname].append('<h4><pre>            <a href="' + linkmapping[label] + '">' + mapping[label] + ' ' + sectionname + '</a></pre></h4>')
                 
-            if '\\begin{figure}' in line:
+            if '\\begin{figure}' in nocommentsline:
                 # add a figure
-                label = line.split('}{')[1].split('}')[0] # cut out that last }
+                label = nocommentsline.split('}{')[1].split('}')[0] # cut out that last }
                 # increment figures
                 figures += 1
                 mapping[label] = compilerules[fname] + '.' + str(figures)
                 #linkmapping[label] = '/' + fname + '#' + label
                 linkmapping[label] = fname.split('.')[0] + '.html' + '#' + label
                 
-            if '\\begin{table}' in line:
+            if '\\begin{table}' in nocommentsline:
                 # add a table
-                label = line.split('}{')[1].split('}')[0] # cut out that last }
+                label = nocommentsline.split('}{')[1].split('}')[0] # cut out that last }
                 # increment figures
                 tables += 1
                 mapping[label] = compilerules[fname] + '.' + str(tables)
                 #linkmapping[label] = '/' + fname + '#' + label
                 linkmapping[label] = fname.split('.')[0] + '.html' + '#' + label
                 
-            if '\\begin{equation}' in line: # here we only give a single equation number to an align..... is that ok?
+            if '\\begin{equation}' in nocommentsline: # here we only give a single equation number to an align..... is that ok?
                 # add an equation
-                label = line.split('}{')[1].split('}')[0] # cut out that last }
+                label = nocommentsline.split('}{')[1].split('}')[0] # cut out that last }
                 # increment equations
                 equations += 1
                 mapping[label] = compilerules[fname] + '.' + str(equations)
@@ -198,7 +200,12 @@ for fname in tocompileFnames:
     filestring = ''.join(lines)
     bib_data = dict() # empty dict so that cite just gives ?? if something is wrong with bib file
     citedarticles = dict() # this keeps the map of key:ref number for us. Later, use citedarticles.values() to actually make the bibliography
-    if '\\bibliography' in filestring:
+    bibexists = 0 # have to account for comments
+    for ln in filestring.split('\n'):
+        if '\\bibliography' in ln.split('##')[0]:
+            bibexists = 1
+            
+    if bibexists:
         # grab the bib file we are making the bibliography from and the style
         bibfname = filestring.split('\\bibliography{')[1].split('}{')[0] # \\bibliography{file.bib}{style}
         bibstyle = filestring.split('\\bibliography{')[1].split('}{')[1].split('}')[0] # \\bibliography{file.bib}{style}
@@ -538,7 +545,7 @@ for fname in tocompileFnames:
 csstowrite = "div{max-width: 1000px; position: absolute; left: 50%; transform: translate(-50%,0); text-align: justify;}\n"
 csstowrite += "math{font-size: 20px}\n"
 csstowrite += "figcaption math{font-size: 16px}\n"
-csstowrite += 'p{text-align: justify; font-size: 20px;}\n'
+csstowrite += 'p{text-align: justify; font-size: 20px; line-height: 1.5}\n'
 csstowrite += '.texsite{text-align: justify; font-size: 13px; color: gray;}\n'
 csstowrite += 'h1{font-size: 38px}\n'
 csstowrite += 'h2{font-size: 30px}\n'
@@ -559,18 +566,22 @@ if backtotext != '' and backtolink != '':
 tochtml += '<h1>' + sitetitle + '</h1><p>By: ' + siteauthor + '</p><h2>Table of Contents</h2>'
 with open(tocFname) as f:
     for line in f:
-        newline = str(line)
+        newline = str(line).split('##')[0]
         # if \include is here, make a link
-        if '\\include' in line:
-            currentfname = line.split('}{')[0].split('{')[1]
-            newline = "<h2><a href='" + line.split('}{')[0].split('{')[1].split('.')[0] + '.html' + "'>" + line.split('}{')[1] + ' ' + line.split('}{')[2].split('}')[0] + "</a></h2>"
+        if '\\include' in newline:
+            currentfname = newline.split('}{')[0].split('{')[1]
+            newline = "<h2><a href='" + newline.split('}{')[0].split('{')[1].split('.')[0] + '.html' + "'>" + newline.split('}{')[1] + ' ' + newline.split('}{')[2].split('}')[0] + "</a></h2>"
             # now add substructure
             for substructurestring in substructuremap[currentfname]:
                 newline += substructurestring
 
-        if '\\title' in line or '\\author' in line or '\\backto' in line:
+        elif '\\title' in newline or '\\author' in newline or '\\backto' in newline:
             # just skip these
             newline = ''
+
+        else:
+            # put it between <p> </p>
+            newline = '<p>' + newline.strip() + '</p>\n'
             
         tochtml += newline
         
