@@ -5,4 +5,4 @@ TeXsite is a solution for including math on websites, say if you want to post co
 
 Python dependencies (required in order to run; make sure you can import them): pybtex, latex2mathml, shutil, json, pathlib, subprocess, sys, os
 
-Current version: 0.0.2 -- teXsite is in its early stages of development. It has been tested in very few configurations, with very few use cases. Issues, feature requests, and comments are welcome. If you use it to build something cool, let us know!
+Current version: 0.0.3 -- teXsite is in its early stages of development. It has been tested in very few configurations, with very few use cases. Issues, feature requests, and comments are welcome. If you use it to build something cool, let us know!
