@@ -20,7 +20,7 @@ if len(sys.argv) == 1 or '-h' in sys.argv:
     print("-v: Print the (v)ersion number.")
     exit()
 
-versionnumber = '0.0.2'
+versionnumber = '0.0.3'
 
 if '-v' in sys.argv:
     print("teXsite initialization script, version {}".format(versionnumber))
